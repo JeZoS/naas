@@ -1,5 +1,5 @@
 {
-  "name": "safebubble",
+  "name": "politely",
   "version": "1.0.0",
   "scripts": {
     "dev": "concurrently \"node server.js\" \"npm run dev --prefix client\"",

@@ -13,7 +13,7 @@ export default function Sidebar({ activeTool, onSwitch }) {
     <aside className="sidebar" id="sidebar">
       <div className="logo">
         <div className="logo-icon">🔮</div>
-        SafeBubble
+        Politely
       </div>
 
       <div>
@@ -50,7 +50,7 @@ export default function Sidebar({ activeTool, onSwitch }) {
         </div>
       </div>
 
-      <div className="sidebar-foot">© 2026 SafeBubble</div>
+      <div className="sidebar-foot">© 2026 Politely</div>
     </aside>
   )
 }

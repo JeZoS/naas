@@ -79,7 +79,7 @@ export default function ToolPage({ toolId, isDark, onToggleTheme, onToast }) {
     const url = URL.createObjectURL(blob)
     const a = Object.assign(document.createElement('a'), {
       href: url,
-      download: `safebubble-${toolId}.txt`,
+      download: `politely-${toolId}.txt`,
     })
     a.click()
     URL.revokeObjectURL(url)

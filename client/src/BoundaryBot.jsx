@@ -79,7 +79,7 @@ export default function BoundaryBot({ isDark, onToggleTheme, onToast }) {
     const url = URL.createObjectURL(blob)
     const a = Object.assign(document.createElement('a'), {
       href: url,
-      download: 'safebubble-boundary.txt',
+      download: 'politely-boundary.txt',
     })
     a.click()
     URL.revokeObjectURL(url)

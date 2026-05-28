@@ -13,9 +13,12 @@ module.exports = async (req, res) => {
   const { prompt } = req.body
 
   try {
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+    const openai = new OpenAI({
+      apiKey: process.env.OPENROUTER_API_KEY,
+      baseURL: 'https://openrouter.ai/api/v1',
+    })
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'openai/gpt-4o-mini',
       messages: [
         { role: 'system', content: GEN_SYSTEM },
         { role: 'user', content: prompt },

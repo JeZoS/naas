@@ -9,8 +9,11 @@ app.use(express.json())
 // Lazy-init so the server starts even before the key is set
 let _openai = null
 function getClient() {
-  if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not set — add it to .env')
-  if (!_openai) _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  if (!process.env.OPENROUTER_API_KEY) throw new Error('OPENROUTER_API_KEY is not set — add it to .env')
+  if (!_openai) _openai = new OpenAI({
+    apiKey: process.env.OPENROUTER_API_KEY,
+    baseURL: 'https://openrouter.ai/api/v1',
+  })
   return _openai
 }
 
@@ -24,7 +27,7 @@ app.post('/api/generate', async (req, res) => {
   try {
     const openai = getClient()
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'openai/gpt-4o-mini',
       messages: [
         { role: 'system', content: GEN_SYSTEM },
         { role: 'user', content: prompt }

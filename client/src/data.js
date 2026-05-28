@@ -1,0 +1,222 @@
+export const TOOLS = {
+  no: {
+    title: 'No as a Service 🚫',
+    sub: 'Set boundaries with confidence',
+    roulette: 'No Roulette',
+    dayLbl: '✨ No of the Day ✨',
+    quotes: [
+      '"Saying no is a complete sentence."',
+      '"No is a full sentence — it requires no justification."',
+      '"Every time you say no to the wrong thing, you say yes to the right thing."',
+      '"You teach people how to treat you by what you allow."',
+    ],
+    catTitle: 'What are you saying "No" to?',
+    cats: [
+      { name: 'Work Request',  desc: 'Decline extra tasks',           bg: '#163822', tx: '#4ade80' },
+      { name: 'Social Event',  desc: 'Skip gatherings gracefully',    bg: '#1e1b48', tx: '#a5b4fc' },
+      { name: 'Favor',         desc: "Turn down a friend's ask",      bg: '#3f1515', tx: '#fca5a5' },
+      { name: 'Meeting',       desc: 'Skip unnecessary meetings',     bg: '#0f3332', tx: '#2dd4bf' },
+      { name: 'Deadline',      desc: 'Push back on timelines',        bg: '#2c1e08', tx: '#fbbf24' },
+      { name: 'Relationship',  desc: 'Hold personal limits firm',     bg: '#2a1648', tx: '#c4b5fd' },
+    ],
+    toneTitle: 'Choose your tone',
+    tones: [
+      { name: 'Firm',       desc: 'Clear and direct',    emoji: '✊', bg: '#1e3a8a', tx: '#93c5fd' },
+      { name: 'Kind',       desc: 'Warm but clear',      emoji: '🌸', bg: '#163822', tx: '#4ade80' },
+      { name: 'Apologetic', desc: 'Gentle and sorry',    emoji: '😔', bg: '#3f1515', tx: '#fca5a5' },
+      { name: 'Funny',      desc: 'Light-hearted no',    emoji: '😄', bg: '#2c1e08', tx: '#fbbf24' },
+    ],
+    recip: 'Who are you saying no to?',
+    reason: 'Any specific reason? (Optional)',
+    outLbl: 'Your "No" Message:',
+    buildPrompt: (cat, tone, name, ctx) =>
+      `Write a "${tone}" refusal for: ${cat}${name ? ` to ${name}` : ''}${ctx ? `. Context: ${ctx}` : ''}.`,
+  },
+
+  yeah: {
+    title: 'Yeah as a Service ✅',
+    sub: 'Say yes with intention',
+    roulette: 'Yes Roulette',
+    dayLbl: '✨ Yes of the Day ✨',
+    quotes: [
+      '"I\'d be honored to join you for this opportunity."',
+      '"Yes — and I\'m excited to make it happen."',
+      '"Count me in. Let\'s do this."',
+      '"Absolutely. I\'d love to be part of this."',
+    ],
+    catTitle: 'What are you saying "Yes" to?',
+    cats: [
+      { name: 'Opportunity',   desc: 'Accept a new challenge',         bg: '#163822', tx: '#4ade80' },
+      { name: 'Help Request',  desc: 'Support someone who needs help', bg: '#3f1515', tx: '#fca5a5' },
+      { name: 'Social Invite', desc: 'Accept an invitation',           bg: '#1e3a8a', tx: '#93c5fd' },
+      { name: 'Work Project',  desc: 'Take on a new assignment',       bg: '#0f3332', tx: '#2dd4bf' },
+      { name: 'Date',          desc: 'Accept a romantic proposition',  bg: '#3a1630', tx: '#f472b6' },
+      { name: 'Collaboration', desc: 'Join a shared project or goal',  bg: '#2c1e08', tx: '#fbbf24' },
+    ],
+    toneTitle: 'Choose your tone',
+    tones: [
+      { name: 'Grateful',  desc: 'Thankful & appreciative', emoji: '🙏', bg: '#1e3a8a', tx: '#93c5fd' },
+      { name: 'Excited',   desc: 'Enthusiastic & energetic', emoji: '🎉', bg: '#163822', tx: '#4ade80' },
+      { name: 'Chill',     desc: 'Relaxed & easy-going',    emoji: '😎', bg: '#2c1e08', tx: '#fbbf24' },
+      { name: 'Assertive', desc: 'Confident & clear',       emoji: '💪', bg: '#3f1515', tx: '#fca5a5' },
+    ],
+    recip: 'Who are you saying yes to?',
+    reason: 'Any specific reason? (Optional)',
+    outLbl: 'Your "Yes" Message:',
+    buildPrompt: (cat, tone, name, ctx) =>
+      `Write a "${tone}" acceptance for: ${cat}${name ? ` to ${name}` : ''}${ctx ? `. Context: ${ctx}` : ''}.`,
+  },
+
+  maybe: {
+    title: 'Maybe as a Service 🤷',
+    sub: 'Delay decisions politely',
+    roulette: 'Maybe Roulette',
+    dayLbl: '✨ Maybe of the Day ✨',
+    quotes: [
+      '"That\'s interesting. Let me consider my options first."',
+      '"I need a bit more time to think this through."',
+      '"Let me circle back — I want to give it proper thought."',
+      '"I\'m considering it. Can I get back to you by end of week?"',
+    ],
+    catTitle: 'What are you postponing?',
+    cats: [
+      { name: 'Meeting',  desc: 'Postpone a meeting or event',      bg: '#2a1648', tx: '#c4b5fd' },
+      { name: 'Date',     desc: 'Delay a romantic engagement',       bg: '#3f1515', tx: '#fca5a5' },
+      { name: 'Project',  desc: 'Extend a project timeline',         bg: '#1e3a8a', tx: '#93c5fd' },
+      { name: 'Response', desc: 'Buy time before responding',        bg: '#2c1e08', tx: '#fbbf24' },
+      { name: 'Event',    desc: 'Tentatively accept an invitation',  bg: '#163822', tx: '#4ade80' },
+      { name: 'Request',  desc: 'Delay answering a request',         bg: '#3a1615', tx: '#fca5a5' },
+    ],
+    toneTitle: 'Pick your vibe',
+    tones: [
+      { name: 'Gentle',      desc: 'Soft and considerate',       emoji: '🌸', bg: '#3a1630', tx: '#f0abfc' },
+      { name: 'Honest',      desc: 'Straightforward and direct', emoji: '🤝', bg: '#2c1e08', tx: '#fbbf24' },
+      { name: 'Overwhelmed', desc: 'Busy and stretched thin',    emoji: '😅', bg: '#0f3332', tx: '#2dd4bf' },
+      { name: 'Playful',     desc: 'Light-hearted and humorous', emoji: '😂', bg: '#3f1515', tx: '#fca5a5' },
+    ],
+    recip: 'Who are you responding to?',
+    reason: 'Why are you postponing this?',
+    outLbl: 'Your "Maybe" message:',
+    buildPrompt: (cat, tone, name, ctx) =>
+      `Write a "${tone}" delay/maybe response for: ${cat}${name ? ` to ${name}` : ''}${ctx ? `. Context: ${ctx}` : ''}.`,
+  },
+
+  ghost: {
+    title: 'Ghost as a Service 👻',
+    sub: 'Exit conversations softly',
+    roulette: 'Ghost Roulette',
+    dayLbl: '✨ Ghost Quote of the Day ✨',
+    quotes: [
+      '"Your energy is finite. Spend it wisely."',
+      '"Not every connection needs a conclusion."',
+      '"Fading gracefully is still an art form."',
+      '"Some doors are better left quietly closed."',
+    ],
+    catTitle: 'What are you ghosting?',
+    cats: [
+      { name: 'DM',           desc: 'Exit direct message threads',        bg: '#1e3a8a', tx: '#93c5fd' },
+      { name: 'Chat Group',   desc: 'Leave a group conversation quietly',  bg: '#2a1648', tx: '#c4b5fd' },
+      { name: 'Date',         desc: 'Fade out of dating situations',       bg: '#3a1630', tx: '#f472b6' },
+      { name: 'Work Chat',    desc: 'Exit work conversations gracefully',  bg: '#163822', tx: '#4ade80' },
+      { name: 'Acquaintance', desc: 'Distance from casual connections',    bg: '#2c1e08', tx: '#fbbf24' },
+      { name: 'Client',       desc: 'Wind down client communications',     bg: '#3f1515', tx: '#fca5a5' },
+    ],
+    toneTitle: 'Choose your tone',
+    tones: [
+      { name: 'Graceful',     desc: 'Soft and considerate',  emoji: '🦢', bg: '#163822', tx: '#4ade80' },
+      { name: 'Honest',       desc: 'Direct but kind',       emoji: '✨', bg: '#2a1648', tx: '#c4b5fd' },
+      { name: 'Mysterious',   desc: 'Vague and enigmatic',   emoji: '🔮', bg: '#3a1630', tx: '#f0abfc' },
+      { name: 'Excuse-based', desc: 'Plausible explanations',emoji: '😬', bg: '#3f1515', tx: '#fca5a5' },
+    ],
+    recip: 'Who are you ghosting?',
+    reason: 'Why are you exiting this conversation?',
+    outLbl: 'Your "Ghost" Message:',
+    buildPrompt: (cat, tone, name, ctx) =>
+      `Write a "${tone}" exit message for ghosting: ${cat}${name ? ` (person: ${name})` : ''}${ctx ? `. Reason: ${ctx}` : ''}.`,
+  },
+
+  permission: {
+    title: 'Permission Slip Generator 📄',
+    sub: 'Give yourself permission to be human',
+    roulette: 'Random Slip',
+    dayLbl: '✨ Slip of the Day ✨',
+    quotes: [
+      '"Perfect is the enemy of done. You are doing enough."',
+      '"You have permission to rest. You are not a machine."',
+      '"Giving yourself grace is not weakness — it\'s wisdom."',
+      '"You don\'t need to earn your rest."',
+    ],
+    catTitle: 'What do you need permission for?',
+    cats: [
+      { name: 'Rest',              desc: 'Pause and recharge',             bg: '#163822', tx: '#4ade80' },
+      { name: 'Saying No',         desc: 'Set boundaries without guilt',   bg: '#2a1648', tx: '#c4b5fd' },
+      { name: 'Being Imperfect',   desc: 'Embrace your human nature',      bg: '#2c1e08', tx: '#fbbf24' },
+      { name: 'Not Replying',      desc: 'Take space from digital life',   bg: '#1e3a8a', tx: '#93c5fd' },
+      { name: 'Time Alone',        desc: 'Honor your need for solitude',   bg: '#3f1515', tx: '#fca5a5' },
+      { name: 'Setting Boundaries',desc: 'Protect your energy',            bg: '#0f3332', tx: '#2dd4bf' },
+    ],
+    toneTitle: 'Choose your tone',
+    tones: [
+      { name: 'Gentle',     desc: 'Soft and nurturing',       emoji: '🌸', bg: '#3a1630', tx: '#f0abfc' },
+      { name: 'Empowering', desc: 'Bold and affirming',       emoji: '✨', bg: '#2a1648', tx: '#c4b5fd' },
+      { name: 'Clinical',   desc: 'Research-backed rational', emoji: '📋', bg: '#163822', tx: '#4ade80' },
+      { name: 'Cheerful',   desc: 'Uplifting and positive',   emoji: '😊', bg: '#2c1e08', tx: '#fbbf24' },
+    ],
+    recip: 'Who is this permission slip for?',
+    reason: null,
+    outLbl: 'Your Permission Slip:',
+    isSlip: true,
+    buildPrompt: (cat, tone, name) =>
+      `Write a "${tone}" self-permission statement for: ${cat}${name ? ` for ${name}` : ''}. 2-3 affirming sentences.`,
+  },
+
+  boundary: {
+    title: 'Boundary Bot 🔔',
+    sub: 'Your personal boundary coach',
+    dayLbl: '✨ Reminder of the Day ✨',
+    quotes: [
+      '"You cannot pour from an empty cup. Fill yours first."',
+      '"Boundaries are a form of self-respect."',
+      '"It\'s okay to protect your peace."',
+      '"Your needs matter just as much as anyone else\'s."',
+    ],
+    catTitle: 'What kind of boundary?',
+    cats: [
+      { name: 'Work',      desc: 'Professional boundaries', bg: '#1e3a8a', tx: '#93c5fd' },
+      { name: 'Social',    desc: 'Friend & social circles', bg: '#163822', tx: '#4ade80' },
+      { name: 'Family',    desc: 'Family relationships',    bg: '#2c1e08', tx: '#fbbf24' },
+      { name: 'Messages',  desc: 'Digital communication',   bg: '#3f1515', tx: '#fca5a5' },
+      { name: 'Self-talk', desc: 'Internal boundaries',     bg: '#3a1630', tx: '#f0abfc' },
+    ],
+    toneTitle: 'Choose your reminder tone',
+    tones: [
+      { name: 'Encouraging', desc: 'Supportive & positive',      emoji: '⭐', bg: '#2c1e08', tx: '#fbbf24' },
+      { name: 'Firm',        desc: 'Clear and direct',           emoji: '✋', bg: '#1e3a8a', tx: '#93c5fd' },
+      { name: 'Reflective',  desc: 'Thoughtful & introspective', emoji: '🤔', bg: '#2a1648', tx: '#c4b5fd' },
+      { name: 'Funny',       desc: 'Light-hearted & humorous',   emoji: '😂', bg: '#3f1515', tx: '#fca5a5' },
+    ],
+    recip: 'Who are you setting boundaries with?',
+    reason: 'Describe the specific boundary situation',
+    outLbl: 'Your Boundary Reminder:',
+    buildPrompt: (cat, tone, name, ctx) =>
+      `Write a "${tone}" boundary reminder for: ${cat} boundaries${name ? ` with ${name}` : ''}${ctx ? `. Situation: ${ctx}` : ''}.`,
+  },
+}
+
+export const ALL_TILES = [
+  { id: 'no',         emoji: '🚫', name: 'No as a Service',       desc: 'Set boundaries with confidence'        },
+  { id: 'yeah',       emoji: '✅', name: 'Yeah as a Service',      desc: 'Say yes with intention'                },
+  { id: 'maybe',      emoji: '🤷', name: 'Maybe as a Service',     desc: 'Delay decisions politely'              },
+  { id: 'ghost',      emoji: '👻', name: 'Ghost as a Service',     desc: 'Exit conversations softly'             },
+  { id: 'boundary',   emoji: '🔔', name: 'Boundary Bot',           desc: 'Your personal boundary coach'          },
+  { id: 'permission', emoji: '📄', name: 'Permission Slip',        desc: 'Give yourself permission to be human'  },
+]
+
+export const NAV = [
+  { id: 'no',         icon: '🚫', label: 'No as a Service'   },
+  { id: 'yeah',       icon: '✅', label: 'Yeah as a Service'  },
+  { id: 'maybe',      icon: '🤷', label: 'Maybe as a Service' },
+  { id: 'ghost',      icon: '👻', label: 'Ghost as a Service' },
+  { id: 'boundary',   icon: '🔔', label: 'Boundary Bot'       },
+  { id: 'permission', icon: '📄', label: 'Permission Slip'    },
+]

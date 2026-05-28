@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(open /Users/jezos/Desktop/vibes/naas/index.html)",
+      "Bash(npm install *)",
+      "Bash(node server.js)",
+      "Bash(npm run *)",
+      "Bash(open http://localhost:5173)"
+    ]
+  }
+}

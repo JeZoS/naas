@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SafeBubble</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── TOKENS ─── */
+    :root[data-theme="dark"] {
+      --bg:       #0c0c16;
+      --sidebar:  #111120;
+      --surf:     #1a1a2c;
+      --surf2:    #222238;
+      --border:   rgba(255,255,255,.06);
+      --border2:  rgba(255,255,255,.12);
+      --text:     #e4e4f0;
+      --muted:    #7070a0;
+      --dim:      #444468;
+      --teal:     #0d9488;
+      --teal-h:   #0f766e;
+      --slip-bg:  #1a1a2c;
+    }
+    :root[data-theme="light"] {
+      --bg:       #f5f5fa;
+      --sidebar:  #ffffff;
+      --surf:     #ffffff;
+      --surf2:    #eeeefc;
+      --border:   rgba(0,0,0,.07);
+      --border2:  rgba(0,0,0,.14);
+      --text:     #18182e;
+      --muted:    #6060a0;
+      --dim:      #aaaacc;
+      --teal:     #0d9488;
+      --teal-h:   #0f766e;
+      --slip-bg:  #f0f0fc;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      width: 230px; min-height: 100vh;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 1.25rem 1rem 1rem;
+      gap: 1.5rem;
+      position: fixed; left: 0; top: 0; bottom: 0;
+      overflow-y: auto; z-index: 50;
+      transition: transform .3s;
+    }
+    .sidebar.hidden { transform: translateX(-100%); }
+
+    .logo {
+      display: flex; align-items: center; gap: .55rem;
+      font-weight: 800; font-size: 1rem; color: var(--text);
+      flex-shrink: 0;
+    }
+    .logo-icon {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: #2a2a48;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .85rem;
+    }
+
+    /* Daily quote */
+    .daily-label {
+      font-size: .72rem; color: var(--muted);
+      margin-bottom: .45rem; font-weight: 500;
+    }
+    .daily-card {
+      background: var(--surf);
+      border-radius: .65rem;
+      padding: .75rem .85rem;
+      font-size: .82rem;
+      color: var(--text);
+      line-height: 1.5;
+      border: 1px solid var(--border);
+    }
+
+    /* Nav */
+    .nav-group { display: flex; flex-direction: column; gap: .2rem; }
+    .nav-label {
+      font-size: .68rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .08em;
+      margin-bottom: .35rem; padding-left: .3rem;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: .55rem;
+      padding: .5rem .7rem; border-radius: .5rem;
+      font-size: .85rem; color: var(--muted);
+      cursor: pointer; transition: all .15s;
+      user-select: none;
+    }
+    .nav-item:hover { background: var(--surf); color: var(--text); }
+    .nav-item.active { background: var(--surf); color: var(--text); font-weight: 600; }
+    .nav-icon { font-size: .9rem; width: 18px; text-align: center; }
+
+    .sidebar-foot {
+      margin-top: auto; padding-top: .75rem;
+      border-top: 1px solid var(--border);
+      font-size: .72rem; color: var(--dim);
+    }
+
+    /* ─── MAIN ─── */
+    .main {
+      margin-left: 230px;
+      flex: 1; min-height: 100vh;
+      display: flex; flex-direction: column;
+      transition: margin-left .3s;
+    }
+    .main.full { margin-left: 0; }
+
+    /* ─── TOOL HEADER ─── */
+    .tool-header {
+      display: flex; align-items: center;
+      padding: 1.25rem 1.75rem;
+      border-bottom: 1px solid var(--border);
+      gap: 1rem;
+      position: sticky; top: 0; background: var(--bg); z-index: 10;
+    }
+    .sidebar-btn {
+      width: 30px; height: 30px; border-radius: .4rem;
+      background: var(--surf); border: 1px solid var(--border);
+      cursor: pointer; display: flex; align-items: center;
+      justify-content: center; font-size: .8rem; flex-shrink: 0;
+      color: var(--text);
+    }
+    .title-area { flex: 1; text-align: center; }
+    .tool-title { font-size: 1.15rem; font-weight: 800; }
+    .tool-sub { font-size: .78rem; color: var(--muted); margin-top: .15rem; }
+    .header-right {
+      display: flex; align-items: center; gap: .6rem;
+    }
+    .roulette-btn {
+      display: flex; align-items: center; gap: .4rem;
+      padding: .45rem .9rem; border-radius: .5rem;
+      background: var(--surf); border: 1px solid var(--border);
+      font-size: .78rem; font-weight: 600; color: var(--text);
+      cursor: pointer; transition: all .15s;
+    }
+    .roulette-btn:hover { background: var(--surf2); }
+    .theme-btn {
+      width: 30px; height: 30px; border-radius: .4rem;
+      background: var(--surf); border: 1px solid var(--border);
+      cursor: pointer; display: flex; align-items: center;
+      justify-content: center; font-size: .85rem;
+    }
+
+    /* ─── TOOL BODY ─── */
+    .tool-body {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 1.75rem;
+      padding: 1.75rem;
+      align-items: start;
+    }
+
+    /* ─── LEFT PANEL ─── */
+    .left-panel { display: flex; flex-direction: column; gap: 1.5rem; }
+    .panel-title { font-size: .95rem; font-weight: 700; margin-bottom: .85rem; }
+
+    /* Category grid 3×2 */
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .65rem;
+    }
+    /* Category row (boundary bot — 5 across) */
+    .cat-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: .65rem;
+    }
+
+    .cat-card {
+      border-radius: .7rem;
+      padding: .9rem .8rem;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: filter .15s, border-color .15s;
+    }
+    .cat-card:hover { filter: brightness(1.2); }
+    .cat-card.sel { border-color: rgba(255,255,255,.35); }
+    .cat-name { font-size: .82rem; font-weight: 700; }
+    .cat-desc { font-size: .72rem; margin-top: .2rem; opacity: .82; line-height: 1.35; }
+
+    /* Tone grid 1×4 */
+    .tone-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: .65rem;
+    }
+    .tone-card {
+      border-radius: .7rem;
+      padding: .9rem .6rem;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: filter .15s, border-color .15s;
+      text-align: center;
+    }
+    .tone-card:hover { filter: brightness(1.2); }
+    .tone-card.sel { border-color: rgba(255,255,255,.35); }
+    .tone-emoji { font-size: 1.4rem; margin-bottom: .35rem; }
+    .tone-name { font-size: .78rem; font-weight: 700; }
+    .tone-desc { font-size: .68rem; opacity: .8; margin-top: .1rem; }
+
+    /* Boundary: limit slider section */
+    .limit-title { font-size: .9rem; font-weight: 700; margin-bottom: .5rem; }
+    .limit-sub { font-size: .78rem; color: var(--muted); margin-bottom: .6rem; }
+    .limit-sub strong { color: var(--text); }
+    input[type=range] {
+      width: 100%; accent-color: var(--teal);
+      height: 4px; cursor: pointer;
+    }
+    .range-labels {
+      display: flex; justify-content: space-between;
+      font-size: .68rem; color: var(--muted); margin-top: .35rem;
+    }
+
+    /* ─── RIGHT PANEL ─── */
+    .right-panel { display: flex; flex-direction: column; gap: 1rem; }
+    .right-panel-title { font-size: .9rem; font-weight: 700; margin-bottom: .75rem; }
+
+    .field-label {
+      font-size: .75rem; color: var(--muted);
+      font-weight: 500; margin-bottom: .3rem;
+    }
+    .field-input {
+      width: 100%;
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: .55rem;
+      padding: .6rem .85rem;
+      font-size: .85rem;
+      color: var(--text);
+      font-family: inherit;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .field-input:focus { border-color: var(--border2); }
+    .field-input::placeholder { color: var(--dim); }
+    textarea.field-input {
+      resize: vertical; min-height: 72px; line-height: 1.5;
+    }
+
+    /* Count tracker */
+    .count-box {
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: .7rem;
+      padding: .9rem 1rem;
+    }
+    .count-row { display: flex; align-items: center; justify-content: space-between; gap: .6rem; }
+    .count-title { font-size: .85rem; font-weight: 700; }
+    .count-sub { font-size: .75rem; color: var(--muted); margin-top: .15rem; }
+    .count-btns { display: flex; gap: .4rem; margin-top: .7rem; }
+    .btn-yes {
+      flex: 1; padding: .5rem; border-radius: .45rem;
+      background: var(--teal); color: white;
+      border: none; font-size: .78rem; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center;
+      justify-content: center; gap: .3rem; transition: background .15s;
+    }
+    .btn-yes:hover { background: var(--teal-h); }
+    .btn-reset {
+      padding: .5rem .8rem; border-radius: .45rem;
+      background: transparent; color: var(--muted);
+      border: 1px solid var(--border);
+      font-size: .78rem; cursor: pointer; transition: all .15s;
+    }
+    .btn-reset:hover { color: var(--text); border-color: var(--border2); }
+
+    /* Output */
+    .out-header {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: .45rem;
+    }
+    .out-label { font-size: .85rem; font-weight: 700; display: flex; align-items: center; gap: .35rem; }
+    .regen-btn {
+      background: transparent; border: none;
+      font-size: .75rem; color: var(--muted);
+      cursor: pointer; display: flex; align-items: center;
+      gap: .25rem; padding: .25rem .4rem; border-radius: .35rem;
+      transition: all .15s;
+    }
+    .regen-btn:hover { background: var(--surf); color: var(--text); }
+
+    .out-box {
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: .7rem;
+      padding: .9rem 1rem;
+      min-height: 80px;
+      font-size: .88rem;
+      line-height: 1.65;
+      color: var(--text);
+    }
+    .out-box .placeholder { color: var(--dim); font-style: italic; }
+    .out-box .generating {
+      display: flex; align-items: center;
+      justify-content: center; gap: .5rem;
+      color: var(--muted); min-height: 60px;
+    }
+    .spinner { animation: spin 1s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Permission slip output */
+    .slip-card {
+      border: 1.5px dashed var(--border2);
+      border-radius: .7rem;
+      padding: 1.5rem 1.25rem;
+      background: var(--slip-bg);
+      text-align: center;
+    }
+    .slip-title { font-size: .85rem; font-weight: 900; letter-spacing: .14em; }
+    .slip-sub { font-size: .72rem; color: var(--muted); margin-top: .2rem; margin-bottom: 1.25rem; }
+    .slip-body {
+      font-size: .85rem; line-height: 1.65;
+      margin-bottom: 1.25rem; color: var(--text);
+    }
+    .slip-body.placeholder { color: var(--dim); font-style: italic; }
+    .slip-footer {
+      display: flex; justify-content: space-between;
+      font-size: .72rem; color: var(--muted);
+    }
+
+    /* Action buttons */
+    .action-row {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: .5rem;
+    }
+    .act-btn {
+      padding: .55rem .4rem; border-radius: .5rem;
+      border: none; cursor: pointer;
+      font-size: .75rem; font-weight: 600;
+      display: flex; align-items: center;
+      justify-content: center; gap: .3rem;
+      transition: all .15s;
+    }
+    .act-copy { background: var(--teal); color: white; }
+    .act-copy:hover { background: var(--teal-h); }
+    .act-sec {
+      background: var(--surf); color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .act-sec:hover { color: var(--text); border-color: var(--border2); }
+
+    /* ─── BOUNDARY BOT CHAT ─── */
+    .chat-wrap {
+      display: flex; flex-direction: column;
+      padding: 1.75rem; height: calc(100vh - 80px);
+      gap: .75rem;
+    }
+    .chat-msgs {
+      flex: 1; overflow-y: auto;
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: .7rem;
+      padding: 1rem;
+      display: flex; flex-direction: column;
+      gap: .65rem;
+    }
+    .msg { display: flex; }
+    .msg.bot { justify-content: flex-start; }
+    .msg.user { justify-content: flex-end; }
+    .bubble {
+      max-width: 75%;
+      padding: .65rem .9rem;
+      border-radius: 1rem;
+      font-size: .85rem; line-height: 1.55;
+    }
+    .msg.bot .bubble {
+      background: var(--surf2);
+      color: var(--text);
+      border-radius: 1rem 1rem 1rem .25rem;
+    }
+    .msg.user .bubble {
+      background: var(--teal);
+      color: white;
+      border-radius: 1rem 1rem .25rem 1rem;
+    }
+    .chat-input-row { display: flex; gap: .6rem; }
+    .chat-field {
+      flex: 1;
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: .55rem;
+      padding: .65rem .9rem;
+      font-size: .85rem; color: var(--text);
+      font-family: inherit; outline: none;
+    }
+    .chat-field::placeholder { color: var(--dim); }
+    .chat-field:focus { border-color: var(--border2); }
+    .chat-send {
+      padding: .65rem 1.25rem;
+      background: var(--teal); color: white;
+      border: none; border-radius: .55rem;
+      font-weight: 700; font-size: .85rem; cursor: pointer;
+      transition: background .15s;
+    }
+    .chat-send:hover { background: var(--teal-h); }
+
+    /* ─── ALL TOOLS PAGE ─── */
+    .all-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 1rem;
+      padding: 1.75rem;
+    }
+    .tool-tile {
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: .85rem;
+      padding: 1.5rem 1rem;
+      cursor: pointer; text-align: center;
+      transition: all .2s;
+    }
+    .tool-tile:hover {
+      background: var(--surf2);
+      transform: translateY(-2px);
+      border-color: var(--border2);
+    }
+    .tile-emoji { font-size: 2rem; margin-bottom: .65rem; }
+    .tile-name { font-size: .88rem; font-weight: 700; margin-bottom: .3rem; }
+    .tile-desc { font-size: .75rem; color: var(--muted); line-height: 1.4; }
+
+    /* ─── TOAST / ERROR ─── */
+    .toast {
+      position: fixed; bottom: 1.25rem; right: 1.25rem;
+      background: var(--teal); color: white;
+      padding: .65rem 1.25rem; border-radius: .65rem;
+      font-size: .85rem; font-weight: 600;
+      transform: translateY(80px); opacity: 0;
+      transition: all .3s; z-index: 200;
+      pointer-events: none;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .err-toast {
+      position: fixed; bottom: 1.25rem; right: 1.25rem;
+      background: #3f1515; color: #fca5a5;
+      border: 1px solid #7f3535;
+      padding: .75rem 1rem; border-radius: .65rem;
+      font-size: .82rem; max-width: 280px; z-index: 200;
+    }
+    .err-title { font-weight: 700; margin-bottom: .2rem; color: #fca5a5; }
+    .err-msg { opacity: .85; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 860px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0 !important; }
+      .tool-body { grid-template-columns: 1fr; }
+      .cat-row { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .tone-grid { grid-template-columns: repeat(2, 1fr); }
+      .cat-grid { grid-template-columns: repeat(2, 1fr); }
+      .action-row { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ░░ SIDEBAR ░░ -->
+<aside class="sidebar" id="sidebar">
+  <div class="logo">
+    <div class="logo-icon">🔮</div>
+    SafeBubble
+  </div>
+
+  <div class="daily-section">
+    <div class="daily-label" id="daily-lbl">✨ No of the Day ✨</div>
+    <div class="daily-card" id="daily-q">"Saying no is a complete sentence."</div>
+  </div>
+
+  <div>
+    <div class="nav-label">Boundary Tools</div>
+    <div class="nav-group">
+      <div class="nav-item active" data-tool="no">    <span class="nav-icon">🚫</span> No as a Service</div>
+      <div class="nav-item" data-tool="yeah">         <span class="nav-icon">✅</span> Yeah as a Service</div>
+      <div class="nav-item" data-tool="maybe">        <span class="nav-icon">🤷</span> Maybe as a Service</div>
+      <div class="nav-item" data-tool="ghost">        <span class="nav-icon">👻</span> Ghost as a Service</div>
+      <div class="nav-item" data-tool="boundary">     <span class="nav-icon">🔔</span> Boundary Bot</div>
+      <div class="nav-item" data-tool="permission">   <span class="nav-icon">📄</span> Permission Slip</div>
+    </div>
+  </div>
+
+  <div>
+    <div class="nav-label">Other</div>
+    <div class="nav-group">
+      <div class="nav-item" data-tool="all"><span class="nav-icon">🔧</span> All Tools</div>
+    </div>
+  </div>
+
+  <div class="sidebar-foot">© 2026 SafeBubble</div>
+</aside>
+
+<!-- ░░ MAIN ░░ -->
+<div class="main" id="main">
+  <div id="page"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ─── DATA ─── */
+const TOOLS = {
+  no: {
+    title: 'No as a Service 🚫',
+    sub: 'Set boundaries with confidence',
+    roulette: 'No Roulette',
+    dayLbl: '✨ No of the Day ✨',
+    quotes: [
+      '"Saying no is a complete sentence."',
+      '"No is a full sentence — it requires no justification."',
+      '"Every time you say no to the wrong thing, you say yes to the right thing."',
+      '"You teach people how to treat you by what you allow."',
+    ],
+    catTitle: 'What are you saying "No" to?',
+    cats: [
+      { name:'Work Request',  desc:'Decline extra tasks',           bg:'#163822', tx:'#4ade80' },
+      { name:'Social Event',  desc:'Skip gatherings gracefully',    bg:'#1e1b48', tx:'#a5b4fc' },
+      { name:'Favor',         desc:"Turn down a friend's ask",      bg:'#3f1515', tx:'#fca5a5' },
+      { name:'Meeting',       desc:'Skip unnecessary meetings',     bg:'#0f3332', tx:'#2dd4bf' },
+      { name:'Deadline',      desc:'Push back on timelines',        bg:'#2c1e08', tx:'#fbbf24' },
+      { name:'Relationship',  desc:'Hold personal limits firm',     bg:'#2a1648', tx:'#c4b5fd' },
+    ],
+    toneTitle: 'Choose your tone',
+    tones: [
+      { name:'Firm',      desc:'Clear and direct',    emoji:'✊', bg:'#1e3a8a', tx:'#93c5fd' },
+      { name:'Kind',      desc:'Warm but clear',      emoji:'🌸', bg:'#163822', tx:'#4ade80' },
+      { name:'Apologetic',desc:'Gentle and sorry',    emoji:'😔', bg:'#3f1515', tx:'#fca5a5' },
+      { name:'Funny',     desc:'Light-hearted no',    emoji:'😄', bg:'#2c1e08', tx:'#fbbf24' },
+    ],
+    recip: "Who are you saying no to?",
+    reason: "Any specific reason? (Optional)",
+    outLbl: 'Your "No" Message:',
+    buildPrompt: (cat, tone, name, ctx) =>
+      `Write a "${tone}" refusal for: ${cat}${name?` to ${name}`:''}${ctx?`. Context: ${ctx}`:''}.`,
+  },
+
+  yeah: {
+    title: 'Yeah as a Service ✅',
+    sub: 'Say yes with intention',
+    roulette: 'Yes Roulette',
+    dayLbl: '✨ Yes of the Day ✨',
+    quotes: [
+      '"I\'d be honored to join you for this opportunity."',
+      '"Yes — and I\'m excited to make it happen."',
+      '"Count me in. Let\'s do this."',
+      '"Absolutely. I\'d love to be part of this."',
+    ],
+    catTitle: 'What are you saying "Yes" to?',
+    cats: [
+      { name:'Opportunity',   desc:'Accept a new challenge',        bg:'#163822', tx:'#4ade80' },
+      { name:'Help Request',  desc:'Support someone who needs help',bg:'#3f1515', tx:'#fca5a5' },
+      { name:'Social Invite', desc:'Accept an invitation',          bg:'#1e3a8a', tx:'#93c5fd' },
+      { name:'Work Project',  desc:'Take on a new assignment',      bg:'#0f3332', tx:'#2dd4bf' },
+      { name:'Date',          desc:'Accept a romantic proposition', bg:'#3a1630', tx:'#f472b6' },
+      { name:'Collaboration', desc:'Join a shared project or goal', bg:'#2c1e08', tx:'#fbbf24' },
+    ],
+    toneTitle: 'Choose your tone',
+    tones: [
+      { name:'Grateful',  desc:'Thankful & appreciative', emoji:'🙏', bg:'#1e3a8a', tx:'#93c5fd' },
+      { name:'Excited',   desc:'Enthusiastic & energetic',emoji:'🎉', bg:'#163822', tx:'#4ade80' },
+      { name:'Chill',     desc:'Relaxed & easy-going',    emoji:'😎', bg:'#2c1e08', tx:'#fbbf24' },
+      { name:'Assertive', desc:'Confident & clear',       emoji:'💪', bg:'#3f1515', tx:'#fca5a5' },
+    ],
+    recip: "Who are you saying yes to?",
+    reason: "Any specific reason? (Optional)",
+    outLbl: 'Your "Yes" Message:',
+    buildPrompt: (cat, tone, name, ctx) =>
+      `Write a "${tone}" acceptance for: ${cat}${name?` to ${name}`:''}${ctx?`. Context: ${ctx}`:''}.`,
+  },
+
+  maybe: {
+    title: 'Maybe as a Service 🤷',
+    sub: 'Delay decisions politely',
+    roulette: 'Maybe Roulette',
+    dayLbl: '✨ Maybe of the Day ✨',
+    quotes: [
+      '"That\'s interesting. Let me consider my options first."',
+      '"I need a bit more time to think this through."',
+      '"Let me circle back — I want to give it proper thought."',
+      '"I\'m considering it. Can I get back to you by [day]?"',
+    ],
+    catTitle: 'What are you postponing?',
+    cats: [
+      { name:'Meeting',   desc:'Postpone a meeting or event',     bg:'#2a1648', tx:'#c4b5fd' },
+      { name:'Date',      desc:'Delay a romantic engagement',     bg:'#3f1515', tx:'#fca5a5' },
+      { name:'Project',   desc:'Extend a project timeline',       bg:'#1e3a8a', tx:'#93c5fd' },
+      { name:'Response',  desc:'Buy time before responding',      bg:'#2c1e08', tx:'#fbbf24' },
+      { name:'Event',     desc:'Tentatively accept an invitation',bg:'#163822', tx:'#4ade80' },
+      { name:'Request',   desc:'Delay answering a request',       bg:'#3a1615', tx:'#fca5a5' },
+    ],
+    toneTitle: 'Pick your vibe',
+    tones: [
+      { name:'Gentle',     desc:'Soft and considerate',         emoji:'🌸', bg:'#3a1630', tx:'#f0abfc' },
+      { name:'Honest',     desc:'Straightforward and direct',   emoji:'🤝', bg:'#2c1e08', tx:'#fbbf24' },
+      { name:'Overwhelmed',desc:'Busy and stretched thin',      emoji:'😅', bg:'#0f3332', tx:'#2dd4bf' },
+      { name:'Playful',    desc:'Light-hearted and humorous',   emoji:'😂', bg:'#3f1515', tx:'#fca5a5' },
+    ],
+    recip: "Who are you responding to?",
+    reason: "Why are you postponing this?",
+    outLbl: 'Your "Maybe" message:',
+    buildPrompt: (cat, tone, name, ctx) =>
+      `Write a "${tone}" delay/maybe response for: ${cat}${name?` to ${name}`:''}${ctx?`. Context: ${ctx}`:''}.`,
+  },
+
+  ghost: {
+    title: 'Ghost as a Service 👻',
+    sub: 'Exit conversations softly',
+    roulette: 'Ghost Roulette',
+    dayLbl: '✨ Ghost Quote of the Day ✨',
+    quotes: [
+      '"Your energy is finite. Spend it wisely."',
+      '"Not every connection needs a conclusion."',
+      '"Fading gracefully is still an art form."',
+      '"Some doors are better left quietly closed."',
+    ],
+    catTitle: 'What are you ghosting?',
+    cats: [
+      { name:'DM',          desc:'Exit direct message threads',       bg:'#1e3a8a', tx:'#93c5fd' },
+      { name:'Chat Group',  desc:'Leave a group conversation quietly', bg:'#2a1648', tx:'#c4b5fd' },
+      { name:'Date',        desc:'Fade out of dating situations',      bg:'#3a1630', tx:'#f472b6' },
+      { name:'Work Chat',   desc:'Exit work conversations gracefully', bg:'#163822', tx:'#4ade80' },
+      { name:'Acquaintance',desc:'Distance from casual connections',   bg:'#2c1e08', tx:'#fbbf24' },
+      { name:'Client',      desc:'Wind down client communications',    bg:'#3f1515', tx:'#fca5a5' },
+    ],
+    toneTitle: 'Choose your tone',
+    tones: [
+      { name:'Graceful',     desc:'Soft and considerate',    emoji:'🦢', bg:'#163822', tx:'#4ade80' },
+      { name:'Honest',       desc:'Direct but kind',         emoji:'✨', bg:'#2a1648', tx:'#c4b5fd' },
+      { name:'Mysterious',   desc:'Vague and enigmatic',     emoji:'🔮', bg:'#3a1630', tx:'#f0abfc' },
+      { name:'Excuse-based', desc:'Plausible explanations',  emoji:'😬', bg:'#3f1515', tx:'#fca5a5' },
+    ],
+    recip: "Who are you ghosting?",
+    reason: "Why are you exiting this conversation?",
+    outLbl: 'Your "Ghost" Message:',
+    buildPrompt: (cat, tone, name, ctx) =>
+      `Write a "${tone}" exit message for ghosting: ${cat}${name?` (person: ${name})`:''}${ctx?`. Reason: ${ctx}`:''}.`,
+  },
+
+  permission: {
+    title: 'Permission Slip Generator 📄',
+    sub: 'Give yourself permission to be human',
+    roulette: 'Random Slip',
+    dayLbl: '✨ Slip of the Day ✨',
+    quotes: [
+      '"Perfect is the enemy of done. You are doing enough."',
+      '"You have permission to rest. You are not a machine."',
+      '"Giving yourself grace is not weakness — it\'s wisdom."',
+      '"You don\'t need to earn your rest."',
+    ],
+    catTitle: 'What do you need permission for?',
+    cats: [
+      { name:'Rest',             desc:'Pause and recharge',             bg:'#163822', tx:'#4ade80' },
+      { name:'Saying No',        desc:'Set boundaries without guilt',   bg:'#2a1648', tx:'#c4b5fd' },
+      { name:'Being Imperfect',  desc:'Embrace your human nature',      bg:'#2c1e08', tx:'#fbbf24' },
+      { name:'Not Replying',     desc:'Take space from digital life',   bg:'#1e3a8a', tx:'#93c5fd' },
+      { name:'Time Alone',       desc:'Honor your need for solitude',   bg:'#3f1515', tx:'#fca5a5' },
+      { name:'Setting Boundaries',desc:'Protect your energy',           bg:'#0f3332', tx:'#2dd4bf' },
+    ],
+    toneTitle: 'Choose your tone',
+    tones: [
+      { name:'Gentle',     desc:'Soft and nurturing',        emoji:'🌸', bg:'#3a1630', tx:'#f0abfc' },
+      { name:'Empowering', desc:'Bold and affirming',        emoji:'✨', bg:'#2a1648', tx:'#c4b5fd' },
+      { name:'Clinical',   desc:'Research-backed rational',  emoji:'📋', bg:'#163822', tx:'#4ade80' },
+      { name:'Cheerful',   desc:'Uplifting and positive',    emoji:'😊', bg:'#2c1e08', tx:'#fbbf24' },
+    ],
+    recip: "Who is this permission slip for?",
+    reason: null,
+    outLbl: 'Your Permission Slip:',
+    isSlip: true,
+    buildPrompt: (cat, tone, name) =>
+      `Write a "${tone}" self-permission statement for: ${cat}${name?` for ${name}`:''}.  2-3 affirming sentences.`,
+  },
+
+  boundary: {
+    title: 'Boundary Bot 🔔',
+    sub: 'Your personal boundary coach',
+    dayLbl: '✨ Reminder of the Day ✨',
+    quotes: [
+      '"You cannot pour from an empty cup. Fill yours first."',
+      '"Boundaries are a form of self-respect."',
+      '"It\'s okay to protect your peace."',
+      '"Your needs matter just as much as anyone else\'s."',
+    ],
+    catTitle: 'What kind of boundary?',
+    cats: [
+      { name:'Work',      desc:'Professional boundaries', bg:'#1e3a8a', tx:'#93c5fd' },
+      { name:'Social',    desc:'Friend & social circles', bg:'#163822', tx:'#4ade80' },
+      { name:'Family',    desc:'Family relationships',    bg:'#2c1e08', tx:'#fbbf24' },
+      { name:'Messages',  desc:'Digital communication',   bg:'#3f1515', tx:'#fca5a5' },
+      { name:'Self-talk', desc:'Internal boundaries',     bg:'#3a1630', tx:'#f0abfc' },
+    ],
+    toneTitle: 'Choose your reminder tone',
+    tones: [
+      { name:'Encouraging', desc:'Supportive & positive',      emoji:'⭐', bg:'#2c1e08', tx:'#fbbf24' },
+      { name:'Firm',        desc:'Clear and direct',           emoji:'✋', bg:'#1e3a8a', tx:'#93c5fd' },
+      { name:'Reflective',  desc:'Thoughtful & introspective', emoji:'🤔', bg:'#2a1648', tx:'#c4b5fd' },
+      { name:'Funny',       desc:'Light-hearted & humorous',   emoji:'😂', bg:'#3f1515', tx:'#fca5a5' },
+    ],
+    recip: "Who are you setting boundaries with?",
+    reason: "Describe the specific boundary situation",
+    outLbl: 'Your Boundary Reminder:',
+    isBoundary: true,
+    buildPrompt: (cat, tone, name, ctx) =>
+      `Write a "${tone}" boundary reminder for: ${cat} boundaries${name?` with ${name}`:''}${ctx?`. Situation: ${ctx}`:''}.`,
+  },
+};
+
+/* ─── STATE ─── */
+let tool = 'no';
+let selCat = null;
+let selTone = null;
+let genText = '';
+let chatHistory = [];
+let dark = localStorage.getItem('theme') !== 'light';
+let weekCount = +localStorage.getItem('wc') || 0;
+let weekLimit = +localStorage.getItem('wl') || 3;
+
+/* ─── BOOT ─── */
+function boot() {
+  applyTheme();
+  refreshQuote('no');
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.addEventListener('click', () => switchTool(el.dataset.tool));
+  });
+  switchTool('no');
+}
+
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+}
+
+function refreshQuote(t) {
+  const d = TOOLS[t];
+  if (!d) return;
+  document.getElementById('daily-lbl').textContent = d.dayLbl;
+  document.getElementById('daily-q').textContent =
+    d.quotes[Math.floor(Math.random() * d.quotes.length)];
+}
+
+/* ─── ROUTING ─── */
+function switchTool(t) {
+  tool = t; selCat = null; selTone = null; genText = '';
+  document.querySelectorAll('.nav-item').forEach(el =>
+    el.classList.toggle('active', el.dataset.tool === t));
+  refreshQuote(t in TOOLS ? t : 'no');
+  if (t === 'all')      renderAll();
+  else if (t === 'boundary') renderBoundary();
+  else                  renderTool(t);
+}
+
+/* ─── STANDARD TOOL PAGE ─── */
+function renderTool(tid) {
+  const d = TOOLS[tid];
+  const isSlip = !!d.isSlip;
+  const hasTwoFields = d.reason !== null;
+
+  document.getElementById('page').innerHTML = `
+    <div class="tool-header">
+      <button class="sidebar-btn" onclick="toggleSidebar()">☰</button>
+      <div class="title-area">
+        <div class="tool-title">${d.title}</div>
+        <div class="tool-sub">${d.sub}</div>
+      </div>
+      <div class="header-right">
+        ${d.roulette ? `<button class="roulette-btn" onclick="doRoulette('${tid}')">🎲 ${d.roulette}</button>` : ''}
+        <button class="theme-btn" onclick="toggleTheme()">${dark ? '☀️' : '🌙'}</button>
+      </div>
+    </div>
+
+    <div class="tool-body">
+      <!-- LEFT -->
+      <div class="left-panel">
+        <div>
+          <div class="panel-title">${d.catTitle}</div>
+          <div class="cat-grid" id="cg">
+            ${d.cats.map((c,i) => `
+              <div class="cat-card" data-ci="${i}" style="background:${c.bg};"
+                   onclick="pickCat(${i},'${esc(c.name)}')">
+                <div class="cat-name" style="color:${c.tx};">${c.name}</div>
+                <div class="cat-desc" style="color:${c.tx};">${c.desc}</div>
+              </div>`).join('')}
+          </div>
+        </div>
+        <div>
+          <div class="panel-title">${d.toneTitle}</div>
+          <div class="tone-grid" id="tg">
+            ${d.tones.map((t,i) => `
+              <div class="tone-card" data-ti="${i}" style="background:${t.bg};"
+                   onclick="pickTone(${i},'${esc(t.name)}')">
+                <div class="tone-emoji">${t.emoji}</div>
+                <div class="tone-name" style="color:${t.tx};">${t.name}</div>
+                <div class="tone-desc" style="color:${t.tx};">${t.desc}</div>
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="right-panel">
+        <div class="right-panel-title">Personalize (Optional)</div>
+
+        <div>
+          <div class="field-label">${d.recip || 'Name'}</div>
+          <input class="field-input" id="f-name"
+            placeholder="${isSlip ? 'Who is this slip for?' : 'Who are you responding to?'}" />
+        </div>
+
+        ${hasTwoFields ? `
+        <div>
+          <div class="field-label">${d.reason}</div>
+          <textarea class="field-input" id="f-ctx"
+            placeholder="${tid === 'ghost' ? 'Why are you exiting this conversation?' : 'Any context or reason?'}"></textarea>
+        </div>` : ''}
+
+        <div>
+          <div class="out-header">
+            <div class="out-label">🔔 ${d.outLbl}</div>
+            <button class="regen-btn" onclick="generate('${tid}')">↻ Regenerate</button>
+          </div>
+          ${isSlip ? `
+          <div class="slip-card" id="slip-wrap">
+            <div class="slip-title">PERMISSION SLIP</div>
+            <div class="slip-sub">Official Self-Authorization</div>
+            <div class="slip-body placeholder" id="slip-body">Select a category and tone to generate your slip...</div>
+            <div class="slip-footer">
+              <span id="slip-date">Date: ${today()}</span>
+              <span id="slip-who">Me</span>
+            </div>
+          </div>
+          ` : `
+          <div class="out-box" id="out">
+            <span class="placeholder">Select a category and tone to generate your message...</span>
+          </div>`}
+        </div>
+
+        <div class="action-row">
+          <button class="act-btn act-copy" onclick="doCopy()">📋 Copy</button>
+          <button class="act-btn act-sec" onclick="doLink()">🔗 Copy link</button>
+          <button class="act-btn act-sec" onclick="doShare()">↗ Share</button>
+          <button class="act-btn act-sec" onclick="doDownload()">⬇ Download</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ─── BOUNDARY BOT PAGE ─── */
+function renderBoundary() {
+  const d = TOOLS.boundary;
+  document.getElementById('page').innerHTML = `
+    <div class="tool-header">
+      <button class="sidebar-btn" onclick="toggleSidebar()">☰</button>
+      <div class="title-area">
+        <div class="tool-title">${d.title}</div>
+        <div class="tool-sub">${d.sub}</div>
+      </div>
+      <div class="header-right">
+        <button class="theme-btn" onclick="toggleTheme()">${dark ? '☀️' : '🌙'}</button>
+      </div>
+    </div>
+
+    <div class="tool-body">
+      <!-- LEFT -->
+      <div class="left-panel">
+        <div>
+          <div class="panel-title">${d.catTitle}</div>
+          <div class="cat-row" id="cg">
+            ${d.cats.map((c,i) => `
+              <div class="cat-card" data-ci="${i}" style="background:${c.bg};"
+                   onclick="pickCat(${i},'${esc(c.name)}')">
+                <div class="cat-name" style="color:${c.tx};">${c.name}</div>
+                <div class="cat-desc" style="color:${c.tx};">${c.desc}</div>
+              </div>`).join('')}
+          </div>
+        </div>
+
+        <div class="limit-section">
+          <div class="limit-title">Set your weekly limit</div>
+          <div class="limit-sub">Maximum "yes" responses per week: <strong id="lv">${weekLimit}</strong></div>
+          <input type="range" min="1" max="7" value="${weekLimit}"
+                 oninput="setLimit(this.value)" />
+          <div class="range-labels">
+            <span>Very strict (1)</span><span>Balanced (3-5)</span><span>Flexible (7)</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel-title">${d.toneTitle}</div>
+          <div class="tone-grid" id="tg">
+            ${d.tones.map((t,i) => `
+              <div class="tone-card" data-ti="${i}" style="background:${t.bg};"
+                   onclick="pickTone(${i},'${esc(t.name)}')">
+                <div class="tone-emoji">${t.emoji}</div>
+                <div class="tone-name" style="color:${t.tx};">${t.name}</div>
+                <div class="tone-desc" style="color:${t.tx};">${t.desc}</div>
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="right-panel">
+        <div class="right-panel-title">Personalize (Optional)</div>
+        <div>
+          <div class="field-label">${d.recip}</div>
+          <input class="field-input" id="f-name" placeholder="Who are you setting boundaries with?" />
+        </div>
+        <div>
+          <div class="field-label">${d.reason}</div>
+          <textarea class="field-input" id="f-ctx" placeholder="Describe the specific boundary situation"></textarea>
+        </div>
+
+        <div class="count-box">
+          <div class="count-row">
+            <div>
+              <div class="count-title">Current count: <span id="cc">${weekCount}</span> / <span id="cl">${weekLimit}</span></div>
+              <div class="count-sub">Track how many times you've said yes this week</div>
+            </div>
+          </div>
+          <div class="count-btns">
+            <button class="btn-yes" onclick="incCount()">✓ I said yes today</button>
+            <button class="btn-reset" onclick="resetCount()">Reset</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="out-header">
+            <div class="out-label">🔔 ${d.outLbl}</div>
+            <button class="regen-btn" onclick="generate('boundary')">↻ Regenerate</button>
+          </div>
+          <div class="out-box" id="out">
+            <span class="placeholder">Select a category and tone to generate your reminder...</span>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button class="act-btn act-copy" onclick="doCopy()">📋 Copy</button>
+          <button class="act-btn act-sec" onclick="doLink()">🔗 Copy link</button>
+          <button class="act-btn act-sec" onclick="doShare()">↗ Share</button>
+          <button class="act-btn act-sec" onclick="doDownload()">⬇ Download</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ─── ALL TOOLS PAGE ─── */
+function renderAll() {
+  const tiles = [
+    { id:'no',         emoji:'🚫', name:'No as a Service',      desc:'Set boundaries with confidence'       },
+    { id:'yeah',       emoji:'✅', name:'Yeah as a Service',     desc:'Say yes with intention'               },
+    { id:'maybe',      emoji:'🤷', name:'Maybe as a Service',    desc:'Delay decisions politely'             },
+    { id:'ghost',      emoji:'👻', name:'Ghost as a Service',    desc:'Exit conversations softly'            },
+    { id:'boundary',   emoji:'🔔', name:'Boundary Bot',          desc:'Your personal boundary coach'         },
+    { id:'permission', emoji:'📄', name:'Permission Slip',       desc:'Give yourself permission to be human' },
+  ];
+  document.getElementById('page').innerHTML = `
+    <div class="tool-header">
+      <button class="sidebar-btn" onclick="toggleSidebar()">☰</button>
+      <div class="title-area">
+        <div class="tool-title">🔧 All Tools</div>
+        <div class="tool-sub">Everything you need to protect your peace</div>
+      </div>
+      <div class="header-right">
+        <button class="theme-btn" onclick="toggleTheme()">${dark ? '☀️' : '🌙'}</button>
+      </div>
+    </div>
+    <div class="all-grid">
+      ${tiles.map(t => `
+        <div class="tool-tile" onclick="switchTool('${t.id}')">
+          <div class="tile-emoji">${t.emoji}</div>
+          <div class="tile-name">${t.name}</div>
+          <div class="tile-desc">${t.desc}</div>
+        </div>`).join('')}
+    </div>
+  `;
+}
+
+/* ─── SELECTION ─── */
+function pickCat(i, name) {
+  selCat = name;
+  document.querySelectorAll('#cg .cat-card').forEach((el, j) => el.classList.toggle('sel', j === i));
+  if (selCat && selTone) generate(tool);
+}
+function pickTone(i, name) {
+  selTone = name;
+  document.querySelectorAll('#tg .tone-card').forEach((el, j) => el.classList.toggle('sel', j === i));
+  if (selCat && selTone) generate(tool);
+}
+
+/* ─── GENERATE ─── */
+async function generate(tid) {
+  const d = TOOLS[tid];
+  if (!selCat || !selTone) { showErr('Please select a category and a tone first.'); return; }
+  const name = document.getElementById('f-name')?.value.trim() || '';
+  const ctx  = document.getElementById('f-ctx')?.value.trim() || '';
+  const prompt = d.buildPrompt(selCat, selTone, name, ctx);
+
+  setLoading(tid);
+
+  try {
+    const r = await fetch('/api/generate', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ prompt })
+    });
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+    genText = data.text;
+    setOutput(tid, data.text, name);
+  } catch (e) {
+    showErr('Failed to generate message: ' + e.message);
+    setOutput(tid, '', '', true);
+  }
+}
+
+function setLoading(tid) {
+  const d = TOOLS[tid];
+  if (d.isSlip) {
+    const el = document.getElementById('slip-body');
+    if (el) { el.className = 'slip-body'; el.innerHTML = '<span class="generating"><span class="spinner">↻</span> Generating...</span>'; }
+  } else {
+    const el = document.getElementById('out');
+    if (el) el.innerHTML = '<div class="generating"><span class="spinner">↻</span> Generating...</div>';
+  }
+}
+
+function setOutput(tid, text, name, err) {
+  const d = TOOLS[tid];
+  if (err) {
+    if (d.isSlip) {
+      const el = document.getElementById('slip-body');
+      if (el) { el.className = 'slip-body placeholder'; el.textContent = 'Generation failed. Is the server running?'; }
+    } else {
+      const el = document.getElementById('out');
+      if (el) el.innerHTML = '<span class="placeholder">Generation failed. Is the server running?</span>';
+    }
+    return;
+  }
+  if (d.isSlip) {
+    const body = document.getElementById('slip-body');
+    const who  = document.getElementById('slip-who');
+    if (body) { body.className = 'slip-body'; body.textContent = text; }
+    if (who)  who.textContent = name || 'Me';
+  } else {
+    const el = document.getElementById('out');
+    if (el) el.textContent = text;
+  }
+}
+
+/* ─── ROULETTE ─── */
+function doRoulette(tid) {
+  const d = TOOLS[tid];
+  const ci = Math.floor(Math.random() * d.cats.length);
+  const ti = Math.floor(Math.random() * d.tones.length);
+  selCat  = d.cats[ci].name;
+  selTone = d.tones[ti].name;
+  document.querySelectorAll('#cg .cat-card').forEach((el, j) => el.classList.toggle('sel', j === ci));
+  document.querySelectorAll('#tg .tone-card').forEach((el, j) => el.classList.toggle('sel', j === ti));
+  generate(tid);
+}
+
+/* ─── THEME ─── */
+function toggleTheme() {
+  dark = !dark;
+  localStorage.setItem('theme', dark ? 'dark' : 'light');
+  applyTheme();
+  // re-render current page to update icon
+  const was = tool;
+  if (was === 'all') renderAll();
+  else if (was === 'boundary') renderBoundary();
+  else renderTool(was);
+  // restore selections
+  if (selCat) {
+    const d = TOOLS[was];
+    if (d) {
+      const ci = d.cats.findIndex(c => c.name === selCat);
+      const ti = d.tones.findIndex(t => t.name === selTone);
+      if (ci >= 0) document.querySelectorAll('#cg .cat-card')[ci]?.classList.add('sel');
+      if (ti >= 0) document.querySelectorAll('#tg .tone-card')[ti]?.classList.add('sel');
+    }
+  }
+  if (genText) {
+    setOutput(was, genText, document.getElementById('f-name')?.value.trim() || '');
+  }
+}
+
+/* ─── SIDEBAR ─── */
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+/* ─── BOUNDARY COUNT ─── */
+function setLimit(v) {
+  weekLimit = +v;
+  localStorage.setItem('wl', weekLimit);
+  const lv = document.getElementById('lv');
+  const cl = document.getElementById('cl');
+  if (lv) lv.textContent = weekLimit;
+  if (cl) cl.textContent = weekLimit;
+}
+function incCount() {
+  weekCount++;
+  localStorage.setItem('wc', weekCount);
+  const cc = document.getElementById('cc');
+  if (cc) cc.textContent = weekCount;
+  if (weekCount >= weekLimit) {
+    selCat = selCat || 'Work'; selTone = selTone || 'Encouraging';
+    generate('boundary');
+  }
+}
+function resetCount() {
+  weekCount = 0;
+  localStorage.setItem('wc', 0);
+  const cc = document.getElementById('cc');
+  if (cc) cc.textContent = 0;
+}
+
+/* ─── ACTIONS ─── */
+function doCopy() {
+  if (!genText) { toast('Nothing to copy yet.'); return; }
+  navigator.clipboard.writeText(genText).then(() => toast('Copied to clipboard!'));
+}
+function doLink() {
+  navigator.clipboard.writeText(window.location.href).then(() => toast('Link copied!'));
+}
+function doShare() {
+  if (navigator.share && genText) navigator.share({ text: genText });
+  else doCopy();
+}
+function doDownload() {
+  if (!genText) { toast('Nothing to download yet.'); return; }
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([genText], { type:'text/plain' })),
+    download: `safebubble-${tool}.txt`
+  });
+  a.click();
+}
+
+/* ─── HELPERS ─── */
+function today() {
+  return new Date().toLocaleDateString('en-GB');
+}
+function esc(s) { return s.replace(/'/g, "\\'"); }
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2400);
+}
+function showErr(msg) {
+  document.querySelectorAll('.err-toast').forEach(e => e.remove());
+  const el = document.createElement('div');
+  el.className = 'err-toast';
+  el.innerHTML = `<div class="err-title">Error</div><div class="err-msg">${msg}</div>`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 5000);
+}
+
+boot();
+</script>
+</body>
+</html>

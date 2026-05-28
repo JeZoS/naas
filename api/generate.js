@@ -1,0 +1,30 @@
+const OpenAI = require('openai')
+
+const GEN_SYSTEM =
+  'You are a concise boundary-setting message writer. ' +
+  'Output ONLY the message itself — no quotes, no preamble, no labels. ' +
+  'Write in first person. 2-4 sentences max.'
+
+module.exports = async (req, res) => {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  const { prompt } = req.body
+
+  try {
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: GEN_SYSTEM },
+        { role: 'user', content: prompt },
+      ],
+      max_tokens: 150,
+      temperature: 0.85,
+    })
+    res.json({ text: completion.choices[0].message.content.trim() })
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+}

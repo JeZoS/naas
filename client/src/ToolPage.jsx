@@ -1,130 +1,53 @@
 import { useState } from 'react'
 import { TOOLS } from './data'
 import ToolHeader from './components/ToolHeader'
+import OutputArea from './components/OutputArea'
+import ReplyField from './components/ReplyField'
+import { useGenerator } from './lib/useGenerator'
+import { augmentPrompt } from './lib/prompt'
 
-function today() {
-  return new Date().toLocaleDateString('en-GB')
-}
-
-export default function ToolPage({ toolId, isDark, onToggleTheme, onToast }) {
+export default function ToolPage({ toolId, isDark, onToggleTheme, onToast, onOpenHistory }) {
   const tool = TOOLS[toolId]
 
   const [selCat, setSelCat] = useState(null)
   const [selTone, setSelTone] = useState(null)
-  const [genText, setGenText] = useState('')
-  const [loading, setLoading] = useState(false)
   const [name, setName] = useState('')
   const [ctx, setCtx] = useState('')
+  const [replyOn, setReplyOn] = useState(false)
+  const [replyTo, setReplyTo] = useState('')
 
-  async function gen(cat, tone, currentName = name, currentCtx = ctx) {
-    const prompt = tool.buildPrompt(cat, tone, currentName, currentCtx)
-    setLoading(true)
-    setGenText('')
-    try {
-      const r = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      })
-      const data = await r.json()
-      if (!r.ok) throw new Error(data.error || 'Generation failed')
-      setGenText(data.text)
-    } catch (e) {
-      onToast?.('Error: ' + e.message)
-    } finally {
-      setLoading(false)
-    }
+  const gen = useGenerator({ toolId, toolName: tool.title, onError: m => onToast?.('Error: ' + m) })
+
+  function buildBase(cat, tone) {
+    const base = tool.buildPrompt(cat, tone, name, ctx)
+    return augmentPrompt(base, { replyTo: replyOn ? replyTo : '' })
+  }
+
+  function generate(cat, tone) {
+    gen.generateAll(buildBase(cat, tone), { cat, tone })
   }
 
   function pickCat(catName) {
     setSelCat(catName)
-    if (selTone) gen(catName, selTone)
+    if (selTone) generate(catName, selTone)
   }
 
   function pickTone(toneName) {
     setSelTone(toneName)
-    if (selCat) gen(selCat, toneName)
+    if (selCat) generate(selCat, toneName)
   }
 
   function doRoulette() {
-    const ci = Math.floor(Math.random() * tool.cats.length)
-    const ti = Math.floor(Math.random() * tool.tones.length)
-    const cat = tool.cats[ci].name
-    const tone = tool.tones[ti].name
+    const cat = tool.cats[Math.floor(Math.random() * tool.cats.length)].name
+    const tone = tool.tones[Math.floor(Math.random() * tool.tones.length)].name
     setSelCat(cat)
     setSelTone(tone)
-    gen(cat, tone)
+    generate(cat, tone)
   }
 
-  function doCopy() {
-    if (!genText) { onToast?.('Nothing to copy yet.'); return }
-    navigator.clipboard.writeText(genText).then(() => onToast?.('Copied to clipboard!'))
-  }
-
-  function doCopyLink() {
-    navigator.clipboard.writeText(window.location.href).then(() => onToast?.('Link copied!'))
-  }
-
-  function doShare() {
-    if (navigator.share && genText) {
-      navigator.share({ text: genText })
-    } else {
-      doCopy()
-    }
-  }
-
-  function doDownload() {
-    if (!genText) { onToast?.('Nothing to download yet.'); return }
-    const blob = new Blob([genText], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = Object.assign(document.createElement('a'), {
-      href: url,
-      download: `politely-${toolId}.txt`,
-    })
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
-  function renderOutput() {
-    if (tool.isSlip) {
-      return (
-        <div className="slip-card">
-          <div className="slip-title">PERMISSION SLIP</div>
-          <div className="slip-subtitle">Official Self-Authorization</div>
-          {loading ? (
-            <div className="slip-body placeholder">
-              <span className="spinner">↻</span> Generating...
-            </div>
-          ) : (
-            <div className={`slip-body${genText ? '' : ' placeholder'}`}>
-              {genText || 'Select a category and tone to generate your slip...'}
-            </div>
-          )}
-          <div className="slip-footer">
-            <span>Date: {today()}</span>
-            <span>{name || 'Me'}</span>
-          </div>
-        </div>
-      )
-    }
-
-    if (loading) {
-      return (
-        <div className="out-generating">
-          <span className="spinner">↻</span> Generating...
-        </div>
-      )
-    }
-
-    return (
-      <div className="out-box">
-        {genText || (
-          <span className="placeholder">
-            Select a category and tone to generate your message...
-          </span>
-        )}
-      </div>
-    )
+  function doCopy(text) {
+    if (!text) { onToast?.('Nothing to copy yet.'); return }
+    navigator.clipboard.writeText(text).then(() => onToast?.('Copied to clipboard!'))
   }
 
   return (
@@ -136,6 +59,7 @@ export default function ToolPage({ toolId, isDark, onToggleTheme, onToast }) {
         onRoulette={doRoulette}
         isDark={isDark}
         onToggleTheme={onToggleTheme}
+        onOpenHistory={onOpenHistory}
       />
 
       <div className="tool-body">
@@ -181,6 +105,15 @@ export default function ToolPage({ toolId, isDark, onToggleTheme, onToast }) {
         <div className="right-panel">
           <div className="right-panel-title">Personalize (Optional)</div>
 
+          {!tool.isSlip && (
+            <ReplyField
+              enabled={replyOn}
+              onToggle={() => setReplyOn(v => !v)}
+              value={replyTo}
+              onChange={setReplyTo}
+            />
+          )}
+
           <div>
             <div className="field-label">{tool.recip}</div>
             <input
@@ -218,34 +151,23 @@ export default function ToolPage({ toolId, isDark, onToggleTheme, onToast }) {
             </div>
           )}
 
-          <div>
-            <div className="out-header">
-              <div className="out-label">🔔 {tool.outLbl}</div>
-              <button
-                className="regen-btn"
-                onClick={() => selCat && selTone && gen(selCat, selTone)}
-                disabled={!selCat || !selTone || loading}
-              >
-                ↻ Regenerate
-              </button>
-            </div>
-            {renderOutput()}
-          </div>
-
-          <div className="action-row">
-            <button className="act-btn act-copy" onClick={doCopy}>
-              📋 Copy
-            </button>
-            {/* <button className="act-btn act-sec" onClick={doCopyLink}>
-              🔗 Copy link
-            </button>
-            <button className="act-btn act-sec" onClick={doShare}>
-              ↗ Share
-            </button>
-            <button className="act-btn act-sec" onClick={doDownload}>
-              ⬇ Download
-            </button> */}
-          </div>
+          <OutputArea
+            cards={gen.cards}
+            variations={gen.variations}
+            onSetVariations={gen.setVariationCount}
+            onCopy={doCopy}
+            onRegenerate={gen.regenerate}
+            onRefine={gen.refine}
+            onFavorite={gen.favorite}
+            outLbl={tool.outLbl}
+            isSlip={tool.isSlip}
+            slipName={name}
+            placeholder={
+              tool.isSlip
+                ? 'Select a category and tone to generate your slip…'
+                : 'Select a category and tone to generate your message…'
+            }
+          />
         </div>
       </div>
     </div>

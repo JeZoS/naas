@@ -1,4 +1,4 @@
-export default function ToolHeader({ title, sub, roulette, onRoulette, isDark, onToggleTheme }) {
+export default function ToolHeader({ title, sub, roulette, onRoulette, isDark, onToggleTheme, onOpenHistory }) {
   function toggleSidebar() {
     document.getElementById('sidebar').classList.toggle('open')
   }
@@ -18,6 +18,11 @@ export default function ToolHeader({ title, sub, roulette, onRoulette, isDark, o
         {roulette && onRoulette && (
           <button className="roulette-btn" onClick={onRoulette}>
             🎲 {roulette}
+          </button>
+        )}
+        {onOpenHistory && (
+          <button className="theme-btn" onClick={onOpenHistory} aria-label="History" title="History & favorites">
+            🕑
           </button>
         )}
         <button className="theme-btn" onClick={onToggleTheme} aria-label="Toggle theme">

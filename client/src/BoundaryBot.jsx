@@ -1,47 +1,33 @@
 import { useState } from 'react'
 import { TOOLS } from './data'
 import ToolHeader from './components/ToolHeader'
+import OutputArea from './components/OutputArea'
+import { useGenerator } from './lib/useGenerator'
 
-export default function BoundaryBot({ isDark, onToggleTheme, onToast }) {
+export default function BoundaryBot({ isDark, onToggleTheme, onToast, onOpenHistory }) {
   const tool = TOOLS.boundary
 
   const [selCat, setSelCat] = useState(null)
   const [selTone, setSelTone] = useState(null)
-  const [genText, setGenText] = useState('')
-  const [loading, setLoading] = useState(false)
   const [name, setName] = useState('')
   const [ctx, setCtx] = useState('')
   const [weekLimit, setWeekLimit] = useState(() => +(localStorage.getItem('wl') ?? 3))
   const [weekCount, setWeekCount] = useState(() => +(localStorage.getItem('wc') ?? 0))
 
-  async function gen(cat, tone) {
-    const prompt = tool.buildPrompt(cat, tone, name, ctx)
-    setLoading(true)
-    setGenText('')
-    try {
-      const r = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      })
-      const data = await r.json()
-      if (!r.ok) throw new Error(data.error || 'Generation failed')
-      setGenText(data.text)
-    } catch (e) {
-      onToast?.('Error: ' + e.message)
-    } finally {
-      setLoading(false)
-    }
+  const gen = useGenerator({ toolId: 'boundary', toolName: tool.title, onError: m => onToast?.('Error: ' + m) })
+
+  function generate(cat, tone) {
+    gen.generateAll(tool.buildPrompt(cat, tone, name, ctx), { cat, tone })
   }
 
   function pickCat(catName) {
     setSelCat(catName)
-    if (selTone) gen(catName, selTone)
+    if (selTone) generate(catName, selTone)
   }
 
   function pickTone(toneName) {
     setSelTone(toneName)
-    if (selCat) gen(selCat, toneName)
+    if (selCat) generate(selCat, toneName)
   }
 
   function updateLimit(v) {
@@ -59,7 +45,7 @@ export default function BoundaryBot({ isDark, onToggleTheme, onToast }) {
       const tone = selTone || 'Encouraging'
       setSelCat(cat)
       setSelTone(tone)
-      gen(cat, tone)
+      generate(cat, tone)
     }
   }
 
@@ -68,21 +54,9 @@ export default function BoundaryBot({ isDark, onToggleTheme, onToast }) {
     localStorage.setItem('wc', 0)
   }
 
-  function doCopy() {
-    if (!genText) { onToast?.('Nothing to copy yet.'); return }
-    navigator.clipboard.writeText(genText).then(() => onToast?.('Copied to clipboard!'))
-  }
-
-  function doDownload() {
-    if (!genText) { onToast?.('Nothing to download yet.'); return }
-    const blob = new Blob([genText], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = Object.assign(document.createElement('a'), {
-      href: url,
-      download: 'politely-boundary.txt',
-    })
-    a.click()
-    URL.revokeObjectURL(url)
+  function doCopy(text) {
+    if (!text) { onToast?.('Nothing to copy yet.'); return }
+    navigator.clipboard.writeText(text).then(() => onToast?.('Copied to clipboard!'))
   }
 
   return (
@@ -92,12 +66,12 @@ export default function BoundaryBot({ isDark, onToggleTheme, onToast }) {
         sub={tool.sub}
         isDark={isDark}
         onToggleTheme={onToggleTheme}
+        onOpenHistory={onOpenHistory}
       />
 
       <div className="tool-body">
         {/* ── LEFT PANEL ── */}
         <div className="left-panel">
-          {/* 5-column category row */}
           <div>
             <div className="panel-title">{tool.catTitle}</div>
             <div className="cat-row">
@@ -119,8 +93,7 @@ export default function BoundaryBot({ isDark, onToggleTheme, onToast }) {
           <div>
             <div className="limit-title">Set your weekly limit</div>
             <div className="limit-sub">
-              Maximum &ldquo;yes&rdquo; responses per week:{' '}
-              <strong>{weekLimit}</strong>
+              Maximum &ldquo;yes&rdquo; responses per week: <strong>{weekLimit}</strong>
             </div>
             <input
               type="range"
@@ -186,9 +159,7 @@ export default function BoundaryBot({ isDark, onToggleTheme, onToast }) {
             <div className="count-title">
               Current count: {weekCount} / {weekLimit}
             </div>
-            <div className="count-sub">
-              Track how many times you&apos;ve said yes this week
-            </div>
+            <div className="count-sub">Track how many times you&apos;ve said yes this week</div>
             <div className="count-btns">
               <button className="btn-yes" onClick={incCount}>
                 ✓ I said yes today
@@ -199,59 +170,17 @@ export default function BoundaryBot({ isDark, onToggleTheme, onToast }) {
             </div>
           </div>
 
-          {/* Output */}
-          <div>
-            <div className="out-header">
-              <div className="out-label">🔔 {tool.outLbl}</div>
-              <button
-                className="regen-btn"
-                onClick={() => selCat && selTone && gen(selCat, selTone)}
-                disabled={!selCat || !selTone || loading}
-              >
-                ↻ Regenerate
-              </button>
-            </div>
-            {loading ? (
-              <div className="out-generating">
-                <span className="spinner">↻</span> Generating...
-              </div>
-            ) : (
-              <div className="out-box">
-                {genText || (
-                  <span className="placeholder">
-                    Select a category and tone to generate your reminder...
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="action-row">
-            <button className="act-btn act-copy" onClick={doCopy}>
-              📋 Copy
-            </button>
-            {/* <button
-              className="act-btn act-sec"
-              onClick={() =>
-                navigator.clipboard
-                  .writeText(window.location.href)
-                  .then(() => onToast?.('Link copied!'))
-              }
-            >
-              🔗 Copy link
-            </button>
-            <button
-              className="act-btn act-sec"
-              onClick={() =>
-                navigator.share?.({ text: genText }) || doCopy()
-              }
-            >
-              ↗ Share
-            </button>
-            <button className="act-btn act-sec" onClick={doDownload}>
-              ⬇ Download
-            </button> */}
-          </div>
+          <OutputArea
+            cards={gen.cards}
+            variations={gen.variations}
+            onSetVariations={gen.setVariationCount}
+            onCopy={doCopy}
+            onRegenerate={gen.regenerate}
+            onRefine={gen.refine}
+            onFavorite={gen.favorite}
+            outLbl={tool.outLbl}
+            placeholder="Select a category and tone to generate your reminder…"
+          />
         </div>
       </div>
     </div>

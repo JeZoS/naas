@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { TOOLS, NAV } from './data'
 
-export default function Sidebar({ activeTool, onSwitch }) {
+export default function Sidebar({ activeTool, onSwitch, onOpenHistory }) {
   const toolData = TOOLS[activeTool] || TOOLS.no
 
   const quote = useMemo(() => {
@@ -46,6 +46,10 @@ export default function Sidebar({ activeTool, onSwitch }) {
           >
             <span className="nav-icon">🔧</span>
             All Tools
+          </div>
+          <div className="nav-item" onClick={onOpenHistory}>
+            <span className="nav-icon">🕑</span>
+            History
           </div>
         </div>
       </div>

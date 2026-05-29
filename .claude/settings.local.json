@@ -6,7 +6,12 @@
       "Bash(node server.js)",
       "Bash(npm run *)",
       "Bash(open http://localhost:5173)",
-      "Bash(pkill -f \"node server.js\")"
+      "Bash(pkill -f \"node server.js\")",
+      "Bash(curl -s http://localhost:5176/)",
+      "Bash(npx playwright *)",
+      "Read(//private/tmp/**)",
+      "Bash(playwright screenshot *)",
+      "Bash(node -e ' *)"
     ]
   }
 }

@@ -148,15 +148,11 @@ export default function ToolPage({ toolId, isDark, onToggleTheme, onToast }) {
                 <div
                   key={cat.name}
                   className={`cat-card${selCat === cat.name ? ' sel' : ''}`}
-                  style={{ background: cat.bg }}
+                  style={{ '--c': cat.bg }}
                   onClick={() => pickCat(cat.name)}
                 >
-                  <div className="cat-name" style={{ color: cat.tx }}>
-                    {cat.name}
-                  </div>
-                  <div className="cat-desc" style={{ color: cat.tx }}>
-                    {cat.desc}
-                  </div>
+                  <div className="cat-name">{cat.name}</div>
+                  <div className="cat-desc">{cat.desc}</div>
                 </div>
               ))}
             </div>
@@ -169,16 +165,12 @@ export default function ToolPage({ toolId, isDark, onToggleTheme, onToast }) {
                 <div
                   key={tone.name}
                   className={`tone-card${selTone === tone.name ? ' sel' : ''}`}
-                  style={{ background: tone.bg }}
+                  style={{ '--c': tone.bg }}
                   onClick={() => pickTone(tone.name)}
                 >
                   <div className="tone-emoji">{tone.emoji}</div>
-                  <div className="tone-name" style={{ color: tone.tx }}>
-                    {tone.name}
-                  </div>
-                  <div className="tone-desc" style={{ color: tone.tx }}>
-                    {tone.desc}
-                  </div>
+                  <div className="tone-name">{tone.name}</div>
+                  <div className="tone-desc">{tone.desc}</div>
                 </div>
               ))}
             </div>

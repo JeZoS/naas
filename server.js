@@ -20,21 +20,23 @@ function getClient() {
 const GEN_SYSTEM =
   'You are a concise boundary-setting message writer. ' +
   'Output ONLY the message itself — no quotes, no preamble, no labels. ' +
-  'Write in first person. 2-4 sentences max.'
+  'Write in first person. 2-4 sentences max.' + 
+  'Do not include thinking steps or reasoning, just the final message.' +
+  'Do not include thinking text or reasoning, just the final message.'
 
 app.post('/api/generate', async (req, res) => {
   const { prompt } = req.body
   try {
     const openai = getClient()
     const completion = await openai.chat.completions.create({
-      model: 'openai/gpt-4o-mini',
-      messages: [
-        { role: 'system', content: GEN_SYSTEM },
-        { role: 'user', content: prompt }
-      ],
-      max_tokens: 150,
-      temperature: 0.85
-    })
+        model: "openrouter/owl-alpha",
+        messages: [
+            { role: "system", content: GEN_SYSTEM },
+            { role: "user", content: prompt },
+        ],
+        max_tokens: 150,
+        temperature: 0.85,
+    });
     res.json({ text: completion.choices[0].message.content.trim() })
   } catch (e) {
     res.status(500).json({ error: e.message })
